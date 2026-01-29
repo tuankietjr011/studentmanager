@@ -1,31 +1,47 @@
 package com.example.studentmanager;
 
-import jakarta.persistence.*; // Dùng dấu * để import hết các thư viện cần thiết
+import java.util.UUID;
+
+import jakarta.persistence.Column; // Bắt buộc phải import thư viện này
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "SinhVien")
 public class Student {
     
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // <--- QUAN TRỌNG: Thêm dòng này để ID tự nhảy số (1, 2, 3...)
-    private int id;
+    /* QUAN TRỌNG: Với SQL Server, dùng GenerationType.AUTO hoặc 
+       không cần strategy nếu bạn đã để DEFAULT NEWSEQUENTIALID() ở DB.
+    */
+    @GeneratedValue
+    @Column(name = "id", updatable = false, nullable = false, columnDefinition = "uniqueidentifier")
+    private UUID id; // 1. Thay 'int' thành 'UUID'
     
     private String name;
     private int age;
 
-    // Constructor rỗng (Bắt buộc)
+    // Constructor rỗng (Bắt buộc cho Hibernate)
     public Student() {}
 
-    // Constructor đầy đủ
-    public Student(int id, String name, int age) {
+    // 2. Constructor đầy đủ: Thay 'int id' thành 'UUID id'
+    public Student(UUID id, String name, int age) {
         this.id = id;
         this.name = name;
         this.age = age;
     }
 
-    // Getter và Setter
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
+    // 3. Getter và Setter: Thay 'int' thành 'UUID'
+    public UUID getId() { 
+        return id; 
+    }
+    
+    public void setId(UUID id) { 
+        this.id = id; 
+    }
+
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
     public int getAge() { return age; }

@@ -1,6 +1,7 @@
 package com.example.studentmanager;
 
 import java.util.List;
+import java.util.UUID; // 1. Bắt buộc phải thêm import này
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,39 +19,36 @@ public class Lab2Controller {
     @Autowired
     private StudentRepository studentRepository;
 
-    // Yêu cầu 5: Lấy danh sách (Get All) -> OK
     @GetMapping
     public List<Student> getAll() {
         return studentRepository.findAll();
     }
 
-    // Yêu cầu 1: Thêm mới (POST) -> OK
     @PostMapping
     public Student add(@RequestBody Student student) {
         return studentRepository.save(student);
     }
 
-    // Yêu cầu 2: Xóa sinh viên (Đề bắt dùng POST /delete/{id}) -> SỬA LẠI
+    // LỖI 1: Đổi 'int id' thành 'UUID id'
     @PostMapping("/delete/{id}")
-    public void delete(@PathVariable int id) {
+    public void delete(@PathVariable UUID id) {
         studentRepository.deleteById(id);
     }
 
-    // Yêu cầu 4: Lấy sinh viên theo ID -> OK
+    // LỖI 2: Đổi 'int id' thành 'UUID id'
     @GetMapping("/{id}")
-    public Student getDetail(@PathVariable int id) {
+    public Student getDetail(@PathVariable UUID id) {
         return studentRepository.findById(id).orElse(null);
     }
 
-    // Yêu cầu 3: Tìm kiếm -> OK
     @GetMapping("/search")
     public List<Student> search(@RequestParam String name) {
         return studentRepository.findByNameContaining(name);
     }
 
-    // Yêu cầu 6: Cập nhật (Đề bắt dùng POST /update/{id}) -> SỬA LẠI
+    // LỖI 3 & 4: Đổi tham số nhận vào và biến tạm thành UUID
     @PostMapping("/update/{id}")
-    public Student update(@PathVariable int id, @RequestBody Student student) {
+    public Student update(@PathVariable UUID id, @RequestBody Student student) {
         Student existingStudent = studentRepository.findById(id).orElse(null);
         if (existingStudent != null) {
             existingStudent.setName(student.getName());
