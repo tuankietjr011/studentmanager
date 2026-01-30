@@ -1,58 +1,54 @@
 package com.example.studentmanager;
 
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import java.util.UUID;
 
-@Controller // Dùng cái này để trả về giao diện HTML
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+
+@Controller
 public class Lab2Controller {
 
     @Autowired
     private StudentRepository studentRepository;
 
-    // 1. Trang danh sách sinh viên
+    // 1. Xem danh sách
     @GetMapping("/students")
     public String listStudents(Model model) {
         model.addAttribute("students", studentRepository.findAll());
         return "students"; // Trả về file students.html
     }
 
-    // 2. Trang Form thêm mới
+    // 2. Mở form thêm mới
     @GetMapping("/students/new")
     public String createStudentForm(Model model) {
+        // Tạo sinh viên rỗng để điền form
         Student student = new Student();
         model.addAttribute("student", student);
-        return "create_student"; // Trả về file create_student.html
+        return "form_student"; // Dùng chung 1 file form cho gọn
     }
 
-    // 3. Xử lý lưu sinh viên (Thêm mới)
-    @PostMapping("/students")
-    public String saveStudent(@ModelAttribute("student") Student student) {
-        studentRepository.save(student);
-        return "redirect:/students"; // Lưu xong quay về trang danh sách
-    }
-
-    // 4. Trang Form chỉnh sửa
+    // 3. Mở form sửa (Lấy sinh viên cũ lên)
     @GetMapping("/students/edit/{id}")
     public String editStudentForm(@PathVariable UUID id, Model model) {
-        model.addAttribute("student", studentRepository.findById(id).get());
-        return "edit_student"; // Trả về file edit_student.html
+        Student student = studentRepository.findById(id).orElse(null);
+        model.addAttribute("student", student);
+        return "form_student"; // Dùng chung file form với lúc thêm mới
     }
 
-    // 5. Xử lý cập nhật sinh viên
-    @PostMapping("/students/{id}")
-    public String updateStudent(@PathVariable UUID id, @ModelAttribute("student") Student student) {
-        Student existingStudent = studentRepository.findById(id).get();
-        existingStudent.setName(student.getName());
-        existingStudent.setAge(student.getAge());
-        
-        studentRepository.save(existingStudent);
+    // 4. Xử lý LƯU (Dùng chung cho cả Thêm và Sửa)
+    @PostMapping("/students/save")
+    public String saveStudent(@ModelAttribute("student") Student student) {
+        // Nếu có ID -> Tự cập nhật. Nếu không có ID -> Tự thêm mới.
+        studentRepository.save(student);
         return "redirect:/students";
     }
 
-    // 6. Xử lý xóa sinh viên
+    // 5. Xử lý XÓA (Dùng GetMapping để bấm link là xóa ngay)
     @GetMapping("/students/delete/{id}")
     public String deleteStudent(@PathVariable UUID id) {
         studentRepository.deleteById(id);
