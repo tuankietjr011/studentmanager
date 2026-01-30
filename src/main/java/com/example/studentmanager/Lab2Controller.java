@@ -61,7 +61,13 @@ public class Lab2Controller {
         studentRepository.deleteById(id);
         return "redirect:/students";
     }
-    
+    // 6. Xem chi tiết sinh viên
+    @GetMapping("/students/detail/{id}")
+    public String viewStudentDetail(@PathVariable UUID id, Model model) {
+        Student student = studentRepository.findById(id).orElse(null);
+        model.addAttribute("student", student);
+        return "student_detail"; // Trả về file student_detail.html
+    }
     // Trang chủ nhảy về danh sách
     @GetMapping("/")
     public String home() { return "redirect:/students"; }
