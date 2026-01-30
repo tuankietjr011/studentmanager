@@ -7,91 +7,92 @@
 </head>
 <body class="container mt-4">
 
-    <h3 class="text-primary">QUẢN LÝ SINH VIÊN</h3>
+    <h3 class="text-primary text-center fw-bold">QUẢN LÝ SINH VIÊN (REST API)</h3>
 
-    <div class="row mb-3">
+    <div class="row mb-3 mt-4">
         <div class="col-md-6">
             <div class="input-group">
-                <span class="input-group-text">Tìm tên</span>
+                <span class="input-group-text bg-primary text-white">Tìm tên</span>
                 <input type="text" id="searchName" class="form-control" placeholder="Nhập tên..." onkeyup="searchByName()">
             </div>
         </div>
         
         <div class="col-md-6">
             <div class="input-group">
-                <span class="input-group-text">Tìm ID</span>
-                <input type="number" id="searchId" class="form-control" placeholder="Nhập số ID...">
-                <button class="btn btn-primary" onclick="searchById()">Tìm</button>
+                <span class="input-group-text bg-warning">Tìm ID</span>
+                <input type="text" id="searchId" class="form-control" placeholder="Dán mã UUID vào đây...">
+                <button class="btn btn-warning" onclick="searchById()">Tìm</button>
             </div>
         </div>
     </div>
 
-    <table class="table table-bordered table-striped">
+    <table class="table table-bordered table-hover shadow-sm">
         <thead class="table-dark">
             <tr>
-                <th>ID</th>
+                <th>ID (UUID)</th>
                 <th>Tên</th>
                 <th>Tuổi</th>
-                <th>Hành động</th>
+                <th style="width: 150px;">Hành động</th>
             </tr>
         </thead>
         <tbody id="studentTable">
             </tbody>
     </table>
     
-    <button class="btn btn-outline-secondary mb-3 btn-sm" onclick="loadStudents()">Tải lại danh sách đầy đủ</button>
+    <button class="btn btn-outline-primary mb-4 btn-sm" onclick="loadStudents()">🔄 Tải lại danh sách gốc</button>
 
     <hr>
 
-    <h4 id="formTitle">Thêm sinh viên mới</h4>
-    <input type="hidden" id="hiddenId">
+    <div class="card p-3 shadow-sm bg-light">
+        <h4 id="formTitle" class="text-success">Thêm sinh viên mới</h4>
+        <input type="hidden" id="hiddenId">
 
-    <div class="row g-2">
-        <div class="col-md-7">
-            <input id="name" type="text" class="form-control" placeholder="Nhập Tên">
-        </div>
-        <div class="col-md-3">
-            <input id="age" type="number" class="form-control" placeholder="Nhập Tuổi">
-        </div>
-        <div class="col-md-2">
-            <button id="btnSave" class="btn btn-success w-100" onclick="saveStudent()">Lưu</button>
-        </div>
-        <div class="col-md-12">
-            <button onclick="resetForm()" class="btn btn-secondary btn-sm">Hủy / Làm mới</button>
+        <div class="row g-2">
+            <div class="col-md-6">
+                <input id="name" type="text" class="form-control" placeholder="Nhập Tên sinh viên">
+            </div>
+            <div class="col-md-3">
+                <input id="age" type="number" class="form-control" placeholder="Tuổi">
+            </div>
+            <div class="col-md-3">
+                <button id="btnSave" class="btn btn-success w-100" onclick="saveStudent()">Lưu thông tin</button>
+            </div>
+            <div class="col-md-12 text-end">
+                <button onclick="resetForm()" class="btn btn-secondary btn-sm">Hủy bỏ / Làm mới</button>
+            </div>
         </div>
     </div>
 
     <script>
+        // Đường dẫn API gốc
         const API = "/api/students"; 
 
-        // 1. Tải danh sách
+        // 1. Tải danh sách khi vào trang
         async function loadStudents() {
             try {
                 let res = await fetch(API);
                 let data = await res.json();
                 renderTable(data);
-            } catch (e) { console.error(e); }
+            } catch (e) { console.error("Lỗi tải trang:", e); }
         }
 
-        // Vẽ bảng (Hỗ trợ cả mảng danh sách lẫn 1 đối tượng lẻ)
+        // Hàm vẽ bảng dữ liệu
         function renderTable(data) {
             let html = "";
-            // Nếu data không phải là mảng (do tìm theo ID trả về 1 object), ta ép nó vào mảng
-            const list = Array.isArray(data) ? data : [data];
+            const list = Array.isArray(data) ? data : [data]; // Ép về mảng nếu là object lẻ
 
             if(list.length === 0 || !list[0]) {
-                html = '<tr><td colspan="4" class="text-center text-danger">Không tìm thấy dữ liệu</td></tr>';
+                html = '<tr><td colspan="4" class="text-center text-danger fw-bold">Không tìm thấy dữ liệu nào</td></tr>';
             } else {
                 list.forEach(s => {
-                    if(s) { // Kiểm tra s tồn tại
+                    if(s) {
                         html += `
                         <tr>
-                            <td>${s.id}</td>
-                            <td>${s.name}</td>
+                            <td><small class="text-muted">${s.id}</small></td> <td class="fw-bold">${s.name}</td>
                             <td>${s.age}</td>
                             <td>
-                                <button class="btn btn-warning btn-sm" onclick="editForm(${s.id})">Sửa</button>
-                                <button class="btn btn-danger btn-sm" onclick="deleteStudent(${s.id})">Xóa</button>
+                                <button class="btn btn-primary btn-sm" onclick="editForm('${s.id}')">Sửa</button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteStudent('${s.id}')">Xóa</button>
                             </td>
                         </tr>`;
                     }
@@ -100,95 +101,101 @@
             document.getElementById("studentTable").innerHTML = html;
         }
 
-        // [MỚI] Hàm Tìm theo ID
+        // 2. Tìm theo ID
         async function searchById() {
-            const id = document.getElementById("searchId").value;
-            if(!id) {
-                alert("Vui lòng nhập ID!");
-                return;
-            }
+            const id = document.getElementById("searchId").value.trim();
+            if(!id) { alert("Vui lòng nhập ID!"); return; }
             try {
-                // Gọi API Get Detail (Yêu cầu 4)
                 let res = await fetch(`${API}/${id}`);
                 if(res.ok) {
                     let data = await res.json();
-                    if(data) {
-                        renderTable(data); // Hiển thị sinh viên tìm được
-                    } else {
-                        renderTable([]); // Không tìm thấy
-                    }
+                    renderTable(data);
                 } else {
-                    renderTable([]);
+                    renderTable([]); // Không tìm thấy
                 }
-            } catch (e) {
-                renderTable([]);
-            }
+            } catch (e) { renderTable([]); }
         }
 
-        // Tìm theo tên
+        // 3. Tìm theo tên
         async function searchByName() {
             const name = document.getElementById("searchName").value;
             if (!name) { loadStudents(); return; }
+            
             let res = await fetch(`${API}/search?name=${name}`);
             let data = await res.json();
             renderTable(data);
         }
 
-        // Lưu (Thêm hoặc Sửa)
+        // 4. Lưu (Tự động nhận diện Thêm mới hoặc Cập nhật)
         async function saveStudent() {
             const id = document.getElementById("hiddenId").value;
             const name = document.getElementById("name").value;
             const age = document.getElementById("age").value;
 
-            if (!name || !age) { alert("Nhập thiếu thông tin!"); return; }
+            if (!name || !age) { alert("Vui lòng nhập đủ tên và tuổi!"); return; }
+            
             const studentData = { name: name, age: age };
 
+            // Logic: Có ID thì là SỬA, Không có ID thì là THÊM
             if (id) {
-                await fetch(`${API}/update/${id}`, { // POST Update
-                    method: "POST",
+                // GỌI API SỬA (PUT) - Đã sửa đúng chuẩn
+                await fetch(`${API}/${id}`, { 
+                    method: "PUT", 
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(studentData)
                 });
             } else {
-                await fetch(API, { // POST Add
+                // GỌI API THÊM (POST)
+                await fetch(API, { 
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(studentData)
                 });
             }
+            
             resetForm(); 
             loadStudents(); 
         }
 
-        // Chuẩn bị form Sửa
+        // 5. Đổ dữ liệu lên form để sửa
         async function editForm(id) {
+            // Gọi API lấy chi tiết để điền vào ô input
             let res = await fetch(`${API}/${id}`);
             let student = await res.json();
+            
             document.getElementById("hiddenId").value = student.id;
             document.getElementById("name").value = student.name;
             document.getElementById("age").value = student.age;
-            document.getElementById("formTitle").innerText = "Đang sửa ID: " + id;
+            
+            // Đổi giao diện nút bấm
+            document.getElementById("formTitle").innerText = "Đang chỉnh sửa sinh viên";
+            document.getElementById("formTitle").className = "text-warning";
             document.getElementById("btnSave").innerText = "Cập nhật";
             document.getElementById("btnSave").className = "btn btn-warning w-100";
         }
 
-        // Xóa
+        // 6. Xóa sinh viên
         async function deleteStudent(id) {
-            if(confirm("Xóa nhé?")) {
-                await fetch(`${API}/delete/${id}`, { method: "POST" }); // POST Delete
+            if(confirm("Bạn có chắc muốn xóa sinh viên này không?")) {
+                // GỌI API XÓA (DELETE) - Đã sửa đúng chuẩn
+                await fetch(`${API}/${id}`, { method: "DELETE" });
                 loadStudents();
             }
         }
 
+        // Reset form về trạng thái thêm mới
         function resetForm() {
             document.getElementById("hiddenId").value = "";
             document.getElementById("name").value = "";
             document.getElementById("age").value = "";
+            
             document.getElementById("formTitle").innerText = "Thêm sinh viên mới";
+            document.getElementById("formTitle").className = "text-success";
             document.getElementById("btnSave").innerText = "Lưu";
             document.getElementById("btnSave").className = "btn btn-success w-100";
         }
 
+        // Chạy lần đầu
         loadStudents();
     </script>
 

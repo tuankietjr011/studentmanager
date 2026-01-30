@@ -1,67 +1,61 @@
 package com.example.studentmanager;
 
-import java.util.List;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import java.util.UUID;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CrossOrigin; // Import sao (*) cho gọn
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-@RestController
-@RequestMapping("/api/students")
-@CrossOrigin(origins = "*") // QUAN TRỌNG: Để cho phép test từ mọi nơi
+@Controller // Dùng cái này để trả về giao diện HTML
 public class Lab2Controller {
 
     @Autowired
     private StudentRepository studentRepository;
 
-    // Lấy danh sách
-    @GetMapping
-    public List<Student> getAll() {
-        return studentRepository.findAll();
+    // 1. Trang danh sách sinh viên
+    @GetMapping("/students")
+    public String listStudents(Model model) {
+        model.addAttribute("students", studentRepository.findAll());
+        return "students"; // Trả về file students.html
     }
 
-    // Thêm mới
-    @PostMapping
-    public Student add(@RequestBody Student student) {
-        return studentRepository.save(student);
+    // 2. Trang Form thêm mới
+    @GetMapping("/students/new")
+    public String createStudentForm(Model model) {
+        Student student = new Student();
+        model.addAttribute("student", student);
+        return "create_student"; // Trả về file create_student.html
     }
 
-    // Xóa (Sửa thành @DeleteMapping chuẩn chỉ)
-    @DeleteMapping("/{id}")
-    public void delete(@PathVariable UUID id) {
+    // 3. Xử lý lưu sinh viên (Thêm mới)
+    @PostMapping("/students")
+    public String saveStudent(@ModelAttribute("student") Student student) {
+        studentRepository.save(student);
+        return "redirect:/students"; // Lưu xong quay về trang danh sách
+    }
+
+    // 4. Trang Form chỉnh sửa
+    @GetMapping("/students/edit/{id}")
+    public String editStudentForm(@PathVariable UUID id, Model model) {
+        model.addAttribute("student", studentRepository.findById(id).get());
+        return "edit_student"; // Trả về file edit_student.html
+    }
+
+    // 5. Xử lý cập nhật sinh viên
+    @PostMapping("/students/{id}")
+    public String updateStudent(@PathVariable UUID id, @ModelAttribute("student") Student student) {
+        Student existingStudent = studentRepository.findById(id).get();
+        existingStudent.setName(student.getName());
+        existingStudent.setAge(student.getAge());
+        
+        studentRepository.save(existingStudent);
+        return "redirect:/students";
+    }
+
+    // 6. Xử lý xóa sinh viên
+    @GetMapping("/students/delete/{id}")
+    public String deleteStudent(@PathVariable UUID id) {
         studentRepository.deleteById(id);
-    }
-
-    // Xem chi tiết
-    @GetMapping("/{id}")
-    public Student getDetail(@PathVariable UUID id) {
-        return studentRepository.findById(id).orElse(null);
-    }
-
-    // Tìm kiếm
-    @GetMapping("/search")
-    public List<Student> search(@RequestParam String name) {
-        return studentRepository.findByNameContaining(name);
-    }
-
-    // Sửa (Sửa thành @PutMapping chuẩn chỉ)
-    @PutMapping("/{id}")
-    public Student update(@PathVariable UUID id, @RequestBody Student student) {
-        Student existingStudent = studentRepository.findById(id).orElse(null);
-        if (existingStudent != null) {
-            existingStudent.setName(student.getName());
-            existingStudent.setAge(student.getAge());
-            return studentRepository.save(existingStudent);
-        }
-        return null;
+        return "redirect:/students";
     }
 }
