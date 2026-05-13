@@ -71,4 +71,20 @@ public class Lab2Controller {
     // Trang chủ nhảy về danh sách
     @GetMapping("/")
     public String home() { return "redirect:/students"; }
+   
+    @GetMapping("/tao-data")
+    public String generateFakeData() {
+        String[] names = {"Nguyễn Văn Tuấn Kiệt", "Trần Thị Thu", "Lê Minh Hải", "Phạm Hoàng Sơn", "Vũ Thị Lan", "Hoàng Kim Oanh"};
+        String[] genders = {"Nam", "Nữ", "Nam", "Nam", "Nữ", "Nữ"};
+        
+        for (int i = 0; i < names.length; i++) {
+            Student s = new Student();
+            s.setName(names[i]);
+            s.setAge(19 + i);
+            s.setEmail("sinhvien" + i + "@uda.edu.vn"); // Đuôi email trường luôn cho xịn
+            s.setGender(genders[i]);
+            studentRepository.save(s);
+        }
+        return "redirect:/students";
+    }
 }
